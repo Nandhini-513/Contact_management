@@ -54,13 +54,19 @@ const upload = multer({
 
 // create contact
 router.post("/contact", auth, upload.single("image"), async (req, res) => {
+
   try {
     const { error } = validateContact(req.body);
+
     if (error) {
       return res.status(400).json({ error: error.details[0].message });
     }
 
     const { name, email, phone, designation, gender, courses } = req.body;
+    const existingContact = await Contact.findOne({ email });
+    if (existingContact) {
+      return res.status(400).json({ error: "Email is already in use" });
+    }
     const image = req.file ? `/public/images/${req.file.filename}` : null;
 
     const newContact = new Contact({
@@ -69,11 +75,12 @@ router.post("/contact", auth, upload.single("image"), async (req, res) => {
       phone,
       designation,
       gender,
-      courses: JSON.parse(courses), // Parse courses if sent as JSON
+      courses,// JSON.parse(courses), // Parse courses if sent as JSON
       image,
       postedBy: req.user._id,
     });
 
+    console.log(newContact)
     const result = await newContact.save();
     res.status(201).json({ message: "Contact created successfully", result });
   } catch (err) {

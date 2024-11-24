@@ -7,15 +7,27 @@ const EditContact = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
-
+  const [image, setImage] = useState();
   const [userDetails, setUserDetails] = useState({
     name: "",
-    address: "",
     email: "",
     phone: "",
+    designation: "",
+    gender: "",
+    courses: [],
   });
 
   const [loading, setLoading] = useState(false);
+
+  const handleCheckboxChange = (event) => {
+    const { value, checked } = event.target;
+    setUserDetails((prevDetails) => {
+      const updatedCourses = checked
+        ? [...prevDetails.courses, value]
+        : prevDetails.courses.filter((course) => course !== value);
+      return { ...prevDetails, courses: updatedCourses };
+    });
+  };
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -30,13 +42,13 @@ const EditContact = () => {
         "Content-Type": "application/json",
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
-      body: JSON.stringify({id,...userDetails}),
+      body: JSON.stringify({ id, ...userDetails }),
     });
     const result = await res.json();
     if (!result.error) {
       console.log(result);
       setUserDetails({ name: "", address: "", email: "", phone: "" });
-      navigate("/mycontacts")
+      navigate("/mycontacts");
     } else {
       console.log(result);
     }
@@ -55,14 +67,18 @@ const EditContact = () => {
         });
 
         const result = await res.json();
-        setUserDetails({
+
+        const updatedUserDetails = {
           name: result.name,
           email: result.email,
           address: result.address,
           phone: result.phone,
-        });
+          courses: Array.isArray(result.courses) ? result.courses : [], // Ensure courses is an array
+        };
+
+        setUserDetails(updatedUserDetails);
         console.log(result);
-        setLoading(false)
+        setLoading(false);
       } catch (error) {
         console.log(error);
         console.log(id);
@@ -79,67 +95,168 @@ const EditContact = () => {
         <>
           <h2>Edit your contact</h2>
           <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label htmlFor="nameInput" className="form-label mt-4">
+            <div className="form-group row align-items-center mb-3">
+              <label htmlFor="nameInput" className="col-sm-2 col-form-label">
                 Name
               </label>
-              <input
-                type="text"
-                className="form-control"
-                id="namelInput"
-                name="name"
-                value={userDetails.name}
-                onChange={handleInputChange}
-                placeholder="Viyan"
-                required
-              />
+              <div className="col-sm-10">
+                <input
+                  type="text"
+                  className="form-control"
+                  id="nameInput"
+                  name="name"
+                  value={userDetails.name}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
             </div>
-            <div className="form-group">
-              <label htmlFor="addressInput" className="form-label mt-4">
-                Address
-              </label>
-              <input
-                type="text"
-                className="form-control"
-                id="addressInput"
-                name="address"
-                value={userDetails.address}
-                onChange={handleInputChange}
-                placeholder="Gandhi Nagar"
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="emailInput" className="form-label mt-4">
+            {/* Email */}
+            <div className="form-group row align-items-center mb-3">
+              <label htmlFor="emailInput" className="col-sm-2 col-form-label">
                 Email
               </label>
-              <input
-                type="email"
-                className="form-control"
-                id="emailInput"
-                name="email"
-                value={userDetails.email}
-                onChange={handleInputChange}
-                placeholder="xyz@gmail.com"
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="phoneInput" className="form-label mt-4">
-                Phone Number
-              </label>
-              <input
-                type="number"
-                className="form-control"
-                id="phoneInput"
-                name="phone"
-                value={userDetails.phone}
-                onChange={handleInputChange}
-                placeholder="+91 9852462521"
-                required
-              />
+              <div className="col-sm-10">
+                <input
+                  type="email"
+                  className="form-control"
+                  id="emailInput"
+                  name="email"
+                  value={userDetails.email}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
             </div>
 
+            {/* Phone */}
+            <div className="form-group row align-items-center mb-3">
+              <label htmlFor="phoneInput" className="col-sm-2 col-form-label">
+                Mobile No
+              </label>
+              <div className="col-sm-10">
+                <input
+                  type="number"
+                  className="form-control"
+                  id="phoneInput"
+                  name="phone"
+                  value={userDetails.phone}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            </div>
+
+            
+            {/* Designation */}
+            <div className="form-group row align-items-center mb-3">
+              <label
+                htmlFor="designationInput"
+                className="col-sm-2 col-form-label"
+              >
+                Designation
+              </label>
+              <div className="col-sm-10">
+                <select
+                  className="form-control"
+                  id="designationInput"
+                  name="designation"
+                  value={userDetails.designation}
+                  onChange={handleInputChange}
+                  required
+                >
+                  <option value="">Select</option>
+                  <option value="hr">HR</option>
+                  <option value="manager">Manager</option>
+                  <option value="sales">Sales</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Gender */}
+            <div className="form-group row align-items-center mb-3">
+              <label className="col-sm-2 col-form-label">Gender</label>
+              <div className="col-sm-10">
+                <div>
+                  <label className="me-3">
+                    <input
+                      type="radio"
+                      name="gender"
+                      value="male"
+                      checked={userDetails.gender === "male"}
+                      onChange={handleInputChange}
+                      required
+                    />
+                    Male
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      name="gender"
+                      value="female"
+                      checked={userDetails.gender === "female"}
+                      onChange={handleInputChange}
+                      required
+                    />
+                    Female
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* Courses */}
+            <div className="form-group row align-items-center mb-3">
+              <label className="col-sm-2 col-form-label">Courses</label>
+              <div className="col-sm-10">
+                <label className="me-3">
+                  <input
+                    type="checkbox"
+                    value="mca"
+                    onChange={handleCheckboxChange}
+                    checked={userDetails.courses.includes("mca")}
+                  />
+                  MCA
+                </label>
+                <label className="me-3">
+                  <input
+                    type="checkbox"
+                    value="bca"
+                    onChange={handleCheckboxChange}
+                    checked={userDetails.courses.includes("bca")}
+                  />
+                  BCA
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    value="bsc"
+                    onChange={handleCheckboxChange}
+                    checked={userDetails.courses.includes("bsc")}
+                  />
+                  B.Sc
+                </label>
+              </div>
+            </div>
+
+            {/* Image Upload */}
+            <div className="form-group row align-items-center mb-3">
+              <label htmlFor="imageInput" className="col-sm-2 col-form-label">
+                Image
+              </label>
+              <div className="col-sm-10">
+                <input
+                  type="file"
+                  className="form-control"
+                  id="imageInput"
+                  name="image"
+                  accept="image/jpeg, image/png"
+                  onChange={(e) => {
+                    setImage(e.target.files[0]);
+                  }}
+                  required
+                />
+              </div>
+            </div>
             <input
               type="submit"
               value="Save changes"

@@ -1,11 +1,14 @@
 import { useContext, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import ToastContext from "../context/ToastContext";
+
 import axios from "axios";
 
 const CreateContact = () => {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
+  const { toast } = useContext(ToastContext);
 
   const [userDetails, setUserDetails] = useState({
     name: "",
@@ -15,7 +18,7 @@ const CreateContact = () => {
     gender: "",
     courses: [],
   });
-  const [image, setImage] = useState(null);
+  const [image, setImage] = useState();
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -53,19 +56,18 @@ const CreateContact = () => {
     }
 
     try {
-      const res = await axios.post(
-        "http://localhost:8000/api/contact",
-        formData,
-        {
-          headers: {
-            // "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          // body: JSON.stringify(userDetails),
-        }
-      );
-      setSuccessMessage("Contact created successfully!");
-        // console.log(result);
+      const response = await fetch("http://localhost:8000/api/contact", {
+        method: "POST",
+        headers: {
+          // "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: formData,
+      });
+
+      if (response.ok) {
+        setSuccessMessage("Contact created successfully!");
+        console.log(response);
         setUserDetails({
           name: "",
           email: "",
@@ -74,12 +76,15 @@ const CreateContact = () => {
           gender: "",
           courses: [],
         });
-        setImage(null);
-      
+        setImage("");
+      } else {
+        toast.err("");
+        console.log(response);
+      }
     } catch (err) {
       console.log("Error creating contact", err);
       setErrorMessage(
-        err.response?.data?.error || "Something went wrong. Please try again."
+        err.response?.data?.error || " mail id is already exist"
       );
     }
   };
@@ -88,7 +93,9 @@ const CreateContact = () => {
     <>
       <h2 className="mt-4">Create your contact</h2>
       {errorMessage && <div className="alert alert-danger">{errorMessage}</div>}
-      {successMessage && <div className="alert alert-success">{successMessage}</div>}
+      {successMessage && (
+        <div className="alert alert-success">{successMessage}</div>
+      )}
       <form onSubmit={handleSubmit} className="container mt-3">
         {/* Name */}
         <div className="form-group row align-items-center mb-3">

@@ -9,12 +9,14 @@ const auth = require("./middlewares/auth");
 const User = require("./models/user");
 const multer = require("multer");
 const app = express();
+const cors = require('cors');
+app.use(cors());
 
 // middleware
-// app.use(cors())
+// app.use(cors());
 app.use(express.json());
 app.use(morgan("tiny"));
-app.use(require("cors")());
+// app.use(require("cors")());
 
 // router
 // app.use("/protected", auth, (req, res) => {
