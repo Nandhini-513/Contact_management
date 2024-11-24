@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "joi": "^17.13.3",
+    "react-router-dom": "^6.28.0"
+  }
+}
